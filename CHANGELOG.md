@@ -1,3 +1,8 @@
+## 2.4.0 (2018-02-07)
+- Add format to numbers
+- Improve get config from storage
+- Update options images
+
 ## 2.3.0 (2017-10-27)
 - Fix bug where method is called on nil
 - Fix bug where number isn't added on card create

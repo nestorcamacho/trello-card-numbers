@@ -4,3 +4,4 @@
 - [Hugo Ferreira](https://github.com/hugocf) - Improve html/css in options box. Add customization to copy details
 - [Jon Hemstreet](https://github.com/hemstreet) - Check for method call on nil object
 - [ytn3rd](https://github.com/ytn3rd) - Bug fix, Copy Details Options
+- [nestorcamacho](https://github.com/nestorcamacho) - Format numbers

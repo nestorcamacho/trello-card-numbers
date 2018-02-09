@@ -11,6 +11,7 @@ This extension does the following:
 - Adds a card number head in the detail view
 - Allows you to make card numbers bold
 - Allows you to change the color of the card numbers
+- Allows you to customize the format of the card numbers
 
 ## Credit
 This project was based off the widely available bookmarklet for trello numbers found [here](http://goo.gl/yKfjV).

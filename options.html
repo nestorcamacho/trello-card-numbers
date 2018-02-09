@@ -9,9 +9,18 @@
 
     #options {
       width: 250px;
-      height: 150px;
-      margin: 30px auto 20px auto;
+      margin: 30px auto;
     }
+	
+	#footer {
+	  text-align: right;
+	  border-top: solid lightgray 1px;
+	  padding-top: 20px;
+    }
+	
+	#format-preview {
+	  font-weight: bold;
+	}
     
     .option-line {
       margin-bottom: 20px;
@@ -38,6 +47,12 @@
     <div class="option-line">
       <label><input type="checkbox" id="bold" value="false"> Bold Card Numbers</label>
     </div>
+	<div class="option-line">
+      <label><input type="checkbox" id="format" value="true"> Format Card Numbers:</label>
+      <div class="option-details">
+        <input id="format-pattern" value="#{num}" size="10" class="align-right"> Preview: <span id="format-preview">#123</span>
+      </div>
+    </div>
     <div class="option-line">
       <label><input type="checkbox" id="show-copy" value="false"> Show "Copy details" button:</label>
       <div class="option-details">
@@ -47,10 +62,12 @@
   </div>
 
   <div id="status"></div>
-  <button id="save">Save and Exit</button>
-  <button id="defaults">Reset Defaults</button>
+  <div id="footer">
+	  <button id="save">Save and Exit</button>
+	  <button id="defaults">Reset Defaults</button>
+  </div>
 
-  <script  src="jscolor/jscolor.js"></script>
+  <script src="../trello-card-numbers/jscolor/jscolor.js"></script>
   <script src="options.js"></script>
 </body>
 </html>

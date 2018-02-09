@@ -10,6 +10,10 @@ var TCN_INLINE_BLOCK = 'trello-card-numbers-inline-block';
 var BOARD_URL_REGEX = /trello\.com\/b\//;
 var CARD_URL_REGEX = /trello\.com\/c\//;
 
+const TEMPLATE_FORMAT_PATTERN = "${num}"
+
+var STORAGE_CONFIG;
+
 // ensure lightbox is loaded before adding to it
 function lightboxReady() {
     var promise = new Promise(function(resolve,reject) {
@@ -87,19 +91,26 @@ function boldifyCardids() {
 function addClassWithDisplay(selector, newClass, display, callback) {
     return function() {
         var objects = getByClass(selector);
+		
+		var len = objects.length;
+		for (var i=0; i < len; i++) {
+			var obj = objects[i];
+			obj.innerHTML = formatNum(obj.innerHTML);
+		}
+		
         addClassToArray(objects, newClass);
         objects = getByClass(newClass);
         addStyleToArray(objects, 'display', display);
-        chrome.storage.sync.get(function(items) {
-            if (selector == CARD_SHORT_ID) {
-                if (items.boldId) {
-                    addStyleToArray(objects, 'fontWeight', 'bold');
-                }
-                if (items.idColor) {
-                    addStyleToArray(objects, 'color', '#' + items.idColor);
-                }
-            }
-        });
+
+		if (selector == CARD_SHORT_ID) {
+			if (STORAGE_CONFIG.boldId) {
+				addStyleToArray(objects, 'fontWeight', 'bold');
+			}
+			if (STORAGE_CONFIG.idColor) {
+				addStyleToArray(objects, 'color', '#' + STORAGE_CONFIG.idColor);
+			}
+		}
+		
         if (callback) {
             callback(selector);
         }
@@ -114,7 +125,6 @@ function addTrailingSpace(selector) {
         obj.innerHTML = obj.innerHTML + ' ';
     };
 }
-
 
 function hasClass(target, className) {
     className = ' ' + className + ' ';
@@ -178,30 +188,28 @@ function addNumberToLightboxWhenReady(cardNumber) {
             h2.innerHTML = '<span>' + cardNumber + '</span>';
             obj.insertBefore(h2, obj.lastChild);
 
-            chrome.storage.sync.get(function(items) {
-                if (items.showCopy == true) {
-                    var copyButton = getByClass("button-link js-copy-card")[0];
+			if (STORAGE_CONFIG.showCopy == true) {
+				var copyButton = getByClass("button-link js-copy-card")[0];
 
-                    var copyDetailsButton = document.createElement('a');
-                    copyDetailsButton.className = 'button-link';
-                    copyDetailsButton.href = '#';
-                    copyDetailsButton.onclick = function() {
-                        var cardText = getByClass('js-card-detail-title-input')[0].value;
+				var copyDetailsButton = document.createElement('a');
+				copyDetailsButton.className = 'button-link';
+				copyDetailsButton.href = '#';
+				copyDetailsButton.onclick = function() {
+					var cardText = getByClass('js-card-detail-title-input')[0].value;
 
-                        // Ew....
-                        // Source http://stackoverflow.com/a/18455088
-                        var copyFrom = document.createElement("textarea");
-                        // Unsure if its ok to refer to cardNumber from params.
-                        copyFrom.textContent = items.copyPrefix + cardNumber.trim() + items.copySep + cardText + items.copySuffix;
-                        document.body.appendChild(copyFrom);
-                        copyFrom.select();
-                        document.execCommand('copy');
-                        document.body.removeChild(copyFrom);
-                    };
-                    copyDetailsButton.innerHTML = '<span class="icon-sm icon-card"></span>&nbsp;Copy details</a>';
-                    copyButton.parentNode.insertBefore(copyDetailsButton, copyButton.nextSibling);
-                }
-            });
+					// Ew....
+					// Source http://stackoverflow.com/a/18455088
+					var copyFrom = document.createElement("textarea");
+					// Unsure if its ok to refer to cardNumber from params.
+					copyFrom.textContent = STORAGE_CONFIG.copyPrefix + cardNumber.trim() + STORAGE_CONFIG.copySep + cardText + STORAGE_CONFIG.copySuffix;
+					document.body.appendChild(copyFrom);
+					copyFrom.select();
+					document.execCommand('copy');
+					document.body.removeChild(copyFrom);
+				};
+				copyDetailsButton.innerHTML = '<span class="icon-sm icon-card"></span>&nbsp;Copy details</a>';
+				copyButton.parentNode.insertBefore(copyDetailsButton, copyButton.nextSibling);
+			}
         }
     }, function (err) {
         null;
@@ -214,8 +222,21 @@ function urlMatch(regex, url) {
     return matches != null && matches.length !== 0;
 }
 
-window.addEventListener('load', function() {
-    var showListNumbers = addClassWithDisplay(LIST_NUM_CARDS_CLASS, TCN_INLINE_BLOCK, 'inline-block', null);
+function formatNum(num) {
+    if (typeof(num) != 'string') { return num };
+	
+	if (STORAGE_CONFIG.format === true) {
+		var parseNum = num.replace(/\D/g,'');
+		return STORAGE_CONFIG.formatPattern.replace(TEMPLATE_FORMAT_PATTERN, parseNum);
+	}
+	
+	return num;
+}
+
+function init() {
+	console.log(STORAGE_CONFIG);
+	
+	var showListNumbers = addClassWithDisplay(LIST_NUM_CARDS_CLASS, TCN_INLINE_BLOCK, 'inline-block', null);
     showListNumbers();
     var showCardIds = addClassWithDisplay(CARD_SHORT_ID, TCN_INLINE, 'inline', addTrailingSpace);
     showCardIds();
@@ -269,7 +290,7 @@ window.addEventListener('load', function() {
         if (listCard) {
             var cardId = listCard.querySelectorAll(CARD_SHORT_ID_SELECTOR)[0];
             if (cardId) {
-                id = cardId.innerHTML;
+                id = formatNum(cardId.innerHTML);
                 addNumberToLightboxWhenReady(id);
             }
         }
@@ -278,7 +299,14 @@ window.addEventListener('load', function() {
 
     var pageUrl = document.location.href;
     if (urlMatch(CARD_URL_REGEX, pageUrl)) {
-        var num = '#' + getCardNumberFromUrl(pageUrl);
+        var num = formatNum(getCardNumberFromUrl(pageUrl));
         addNumberToLightboxWhenReady(num);
     }
+}
+
+window.addEventListener('load', function() {
+	chrome.storage.sync.get(function(items) {
+	  STORAGE_CONFIG = items;
+	  init();
+	});
 }, false);
